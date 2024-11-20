@@ -4,6 +4,15 @@
  */
 package crudsimple.windows;
 
+import crudsimple.pojos.Carrera;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+
 /**
  *
  * @author luk0s
@@ -28,9 +37,16 @@ public class MenuWindow extends javax.swing.JFrame {
 
         btnCarreras = new javax.swing.JButton();
         btnAsignaturas = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        tblAsignaturas = new javax.swing.JTable();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Aplicación de Carreras");
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowActivated(java.awt.event.WindowEvent evt) {
+                formWindowActivated(evt);
+            }
+        });
 
         btnCarreras.setText("Mantenedor Carreras");
         btnCarreras.addActionListener(new java.awt.event.ActionListener() {
@@ -46,6 +62,36 @@ public class MenuWindow extends javax.swing.JFrame {
             }
         });
 
+        tblAsignaturas.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "Id Asignatura", "Nombre Asignatura", "Nombre Carrera"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.Integer.class, java.lang.String.class, java.lang.String.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        jScrollPane1.setViewportView(tblAsignaturas);
+        if (tblAsignaturas.getColumnModel().getColumnCount() > 0) {
+            tblAsignaturas.getColumnModel().getColumn(0).setResizable(false);
+            tblAsignaturas.getColumnModel().getColumn(1).setResizable(false);
+            tblAsignaturas.getColumnModel().getColumn(2).setResizable(false);
+        }
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -53,18 +99,23 @@ public class MenuWindow extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGap(24, 24, 24)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(btnAsignaturas)
-                    .addComponent(btnCarreras))
-                .addContainerGap(205, Short.MAX_VALUE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 583, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(btnCarreras)
+                        .addGap(18, 18, 18)
+                        .addComponent(btnAsignaturas)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(34, 34, 34)
-                .addComponent(btnCarreras)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnCarreras)
+                    .addComponent(btnAsignaturas))
                 .addGap(18, 18, 18)
-                .addComponent(btnAsignaturas)
-                .addContainerGap(202, Short.MAX_VALUE))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 264, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(28, Short.MAX_VALUE))
         );
 
         pack();
@@ -79,6 +130,43 @@ public class MenuWindow extends javax.swing.JFrame {
         AsignaturaWindow aw = new AsignaturaWindow(this, true);
         aw.setVisible(true);
     }//GEN-LAST:event_btnAsignaturasActionPerformed
+
+    private void formWindowActivated(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowActivated
+        Connection connection;
+        String url = "jdbc:mysql://localhost:3306/universidad";
+        String user = "root";
+        String password = "UST";
+
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            connection = DriverManager.getConnection(url, user, password);
+            System.out.println("Conexión exitosa a MySQL.");
+            
+            String query = "Select a.id, a.nombre, c.nombre as 'carrera_nombre'" 
+                + " from asignaturas as a" 
+                + " inner join carreras as c on c.id = a.carrera_id";
+            
+            PreparedStatement pst = connection.prepareStatement(query);
+
+            ResultSet resultSet = pst.executeQuery(query);
+            
+            DefaultTableModel tableModel = (DefaultTableModel)tblAsignaturas.getModel();
+            tableModel.setRowCount(0);
+            
+            while (resultSet.next()) {
+                
+                tableModel.addRow(new Object[] {
+                    resultSet.getInt("id"),
+                    resultSet.getString("nombre"),
+                    resultSet.getString("carrera_nombre")
+                });
+            }
+            
+            System.out.println("Se guardaron los datos");
+        } catch (ClassNotFoundException | SQLException e) {
+            System.out.println("error. " + e.getMessage());
+        }
+    }//GEN-LAST:event_formWindowActivated
 
     /**
      * @param args the command line arguments
@@ -118,5 +206,7 @@ public class MenuWindow extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAsignaturas;
     private javax.swing.JButton btnCarreras;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTable tblAsignaturas;
     // End of variables declaration//GEN-END:variables
 }

@@ -4,6 +4,7 @@
  */
 package crudsimple.windows;
 
+import crudsimple.pojos.Carrera;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -33,6 +34,14 @@ public class AsignaturaWindow extends javax.swing.JDialog {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jLabel1 = new javax.swing.JLabel();
+        txtIdAsignatura = new javax.swing.JTextField();
+        txtNombreAsignatura = new javax.swing.JTextField();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        cbxCarreras = new javax.swing.JComboBox<>();
+        btnGuardar = new javax.swing.JButton();
+
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowActivated(java.awt.event.WindowEvent evt) {
@@ -40,15 +49,53 @@ public class AsignaturaWindow extends javax.swing.JDialog {
             }
         });
 
+        jLabel1.setText("ID Asignatura");
+
+        jLabel2.setText("Nombre Asignatura");
+
+        jLabel3.setText("Carrera");
+
+        btnGuardar.setText("Guardar Asignatura");
+        btnGuardar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnGuardarActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jLabel1)
+                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(txtIdAsignatura)
+                    .addComponent(txtNombreAsignatura)
+                    .addComponent(jLabel3)
+                    .addComponent(cbxCarreras, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnGuardar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(252, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(txtIdAsignatura, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(jLabel2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(txtNombreAsignatura, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(jLabel3)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(cbxCarreras, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(btnGuardar)
+                .addContainerGap(79, Short.MAX_VALUE))
         );
 
         pack();
@@ -65,18 +112,18 @@ public class AsignaturaWindow extends javax.swing.JDialog {
             connection = DriverManager.getConnection(url, user, password);
             System.out.println("Conexión exitosa a MySQL desde asignatura window.");
 
-            String query = "SELECT * FROM; carreras";
+            String query = "SELECT * FROM carreras";
 
             PreparedStatement pst = connection.prepareStatement(query);
 
             ResultSet resultSet = pst.executeQuery(query);
 
             while (resultSet.next()) {
-
-                System.out.println("ID: " + resultSet.getInt("id"));
-                System.out.println("Nombre Carrera: " + resultSet.getString("nombre"));
-                System.out.println("------------------");
-
+                Carrera c = new Carrera(
+                    resultSet.getInt("id"),
+                    resultSet.getString("nombre")
+                );
+                cbxCarreras.addItem(c);
             }
             
            
@@ -86,7 +133,36 @@ public class AsignaturaWindow extends javax.swing.JDialog {
         } catch (SQLException e) {
             System.out.println("error. " + e.getMessage());
         }
+        
     }//GEN-LAST:event_formWindowActivated
+
+    private void btnGuardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuardarActionPerformed
+        Connection connection;
+        String url = "jdbc:mysql://localhost:3306/universidad";
+        String user = "root";
+        String password = "UST";
+
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            connection = DriverManager.getConnection(url, user, password);
+            System.out.println("Conexión exitosa a MySQL.");
+            
+            String query = "INSERT INTO universidad.asignaturas (id, nombre, carrera_id) " 
+                    + "VALUES (?, ?, ?)";
+            
+            System.out.println("La query es: " + query);
+            
+            PreparedStatement pst = connection.prepareStatement(query);
+            pst.setObject(1, txtIdAsignatura.getText());
+            pst.setObject(2, txtNombreAsignatura.getText());
+            pst.setObject(3, ((Carrera)cbxCarreras.getSelectedItem()).getId());
+            pst.executeUpdate();
+            
+            System.out.println("Se guardaron los datos");
+        } catch (ClassNotFoundException | SQLException e) {
+            System.out.println("error. " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnGuardarActionPerformed
 
     /**
      * @param args the command line arguments
@@ -131,5 +207,12 @@ public class AsignaturaWindow extends javax.swing.JDialog {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnGuardar;
+    private javax.swing.JComboBox<Carrera> cbxCarreras;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JTextField txtIdAsignatura;
+    private javax.swing.JTextField txtNombreAsignatura;
     // End of variables declaration//GEN-END:variables
 }
